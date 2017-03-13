@@ -1,4 +1,4 @@
-package tic_tac_bot
+package main
 
 import "testing"
 
@@ -17,7 +17,7 @@ func TestBoardCreating(t *testing.T) {
 
 	winner := game.getWinner()
 	if winner != NONE {
-		t.Error("Expected no winner in default game, got", winner)
+		t.Error("Expected no player in default game, got", winner)
 	}
 
 	repr := "....\n" +
@@ -83,7 +83,7 @@ func TestGameRepr(t *testing.T) {
 func testWin(repr string, winner Player, t *testing.T) {
 	game := fromRepr(repr)
 	if game.getWinner() != winner {
-		t.Error(winner, " player win board", repr, "\nHas winner: ", game)
+		t.Error(winner, " player win board", repr, "\nHas player: ", game)
 	}
 }
 

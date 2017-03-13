@@ -1,9 +1,8 @@
-package tic_tac_bot
+package main
 
 import (
 	"strings"
 	"errors"
-	"fmt"
 )
 
 type Game struct {
@@ -64,7 +63,6 @@ func (game *Game) makeNextTurn(row int, col int) (error) {
 	return nil
 }
 func (game *Game) nextPlayer() Player {
-	fmt.Print(game.LastPlayer)
 	if game.LastPlayer != FIRST {
 		game.LastPlayer = FIRST
 		return FIRST
