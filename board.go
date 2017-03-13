@@ -1,10 +1,15 @@
 package tic_tac_bot
 
-import "strings"
+import (
+	"strings"
+	"errors"
+	"fmt"
+)
 
-type Board struct {
-	board [][]Player
-	size  int
+type Game struct {
+	Board      [][]Player `json:"board"`
+	Size       int `json:"size"`
+	LastPlayer Player `json:"last_player"`
 }
 
 type Player int
@@ -15,37 +20,58 @@ const (
 	SECOND Player = iota
 )
 
-func createBoard(size int) *Board {
-	board := [][]Player{}
+func createGame(size int) *Game {
+	table := [][]Player{}
 	for i := 0; i < size; i++ {
-		board = append(board, make([]Player, size))
+		table = append(table, make([]Player, size))
 	}
-	return &Board{board: board, size: size}
+	return &Game{Board: table, Size: size}
 }
 
-func (board Board) repr() (result string) {
-	result = ""
-	for row := 0; row < board.size; row++ {
-		for col := 0; col < board.size; col++ {
-			result += getMark(board.board[row][col])
+func (game Game) repr() string {
+	rows := []string{}
+	for i := 0; i < game.Size; i++ {
+		row := ""
+		for j := 0; j < game.Size; j++ {
+			row += getMark(game.Board[i][j])
 		}
-		result += "\n"
+		rows = append(rows, row)
+
 	}
-	return
+	return strings.Join(rows, "\n")
 }
 
-func fromRepr(repr string) Board {
-	size := len(repr)
+func fromRepr(repr string) *Game {
 	table := [][]Player{}
 	reprTable := strings.Split(repr, "\n")
+	size := len(reprTable)
 	for i := 0; i < size; i++ {
 		row := []Player{}
 		for j := 0; j < size; j++ {
-			row = append(row, fromMark(string(reprTable[row][j])))
+			row = append(row, fromMark(string(reprTable[i][j])))
 		}
 		table = append(table, row)
 	}
-	return Board{table, size}
+	return &Game{Board: table, Size: size}
+}
+
+func (game *Game) makeNextTurn(row int, col int) (error) {
+	if game.Board[row][col] != NONE {
+		return errors.New("Cell is taken")
+	}
+
+	game.Board[row][col] = game.nextPlayer()
+	return nil
+}
+func (game *Game) nextPlayer() Player {
+	fmt.Print(game.LastPlayer)
+	if game.LastPlayer != FIRST {
+		game.LastPlayer = FIRST
+		return FIRST
+	}
+	game.LastPlayer = SECOND
+	return SECOND
+
 }
 
 func fromMark(mark string) Player {
@@ -68,44 +94,44 @@ func getMark(player Player) string {
 	return "."
 }
 
-func (board Board) getWinner() Player {
-	for row := 0; row < board.size; row++ {
-		winner := getSliceWinner(board.board[row])
+func (game Game) getWinner() Player {
+	for row := 0; row < game.Size; row++ {
+		winner := getSliceWinner(game.Board[row])
 		if winner != NONE {
 			return winner
 		}
 	}
 
-	for col := 0; col < board.size; col++ {
-		winner := getSliceWinner(getVerticalSlice(board.board, col))
+	for col := 0; col < game.Size; col++ {
+		winner := getSliceWinner(getVerticalSlice(game.Board, col))
 		if winner != NONE {
 			return winner
 		}
 	}
 
-	winner := getSliceWinner(mainDiagonal(board.board))
+	winner := getSliceWinner(mainDiagonal(game.Board))
 	if winner != NONE {
 		return winner
 	}
 
-	winner = getSliceWinner(reverseDiagonal(board.board))
+	winner = getSliceWinner(reverseDiagonal(game.Board))
 	if winner != NONE {
 		return winner
 	}
 	return NONE
 
 }
-func mainDiagonal(board [][]Player) (result []Player) {
+func mainDiagonal(game [][]Player) (result []Player) {
 	result = []Player{}
-	for i := 0; i < len(board); i++ {
-		result = append(result, board[i][i])
+	for i := 0; i < len(game); i++ {
+		result = append(result, game[i][i])
 	}
 	return
 }
-func getVerticalSlice(board [][]Player, col int) (result []Player) {
+func getVerticalSlice(game [][]Player, col int) (result []Player) {
 	result = []Player{}
-	for row := 0; row < len(board); row++ {
-		result = append(result, board[row][col])
+	for row := 0; row < len(game); row++ {
+		result = append(result, game[row][col])
 	}
 	return
 }
@@ -129,10 +155,10 @@ func getSliceWinner(slice []Player) Player {
 	return NONE
 }
 
-func reverseDiagonal(board [][]Player) (result []Player) {
+func reverseDiagonal(game [][]Player) (result []Player) {
 	result = []Player{}
-	for i := 0; i < len(board); i++ {
-		result = append(result, board[i][len(board)-i-1])
+	for i := 0; i < len(game); i++ {
+		result = append(result, game[i][len(game)-i-1])
 	}
 	return
 }
